@@ -1,3 +1,3 @@
 export const LoginButtonConstants = {
-    SIGN_IN: "Sign in"
-}
+	SIGN_IN: 'Sign in',
+};

@@ -1,36 +1,36 @@
 .centered-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
 }
 
 .github-btn {
-    display: inline-block;
-    background-color: #333;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
+	display: inline-block;
+	background-color: #333;
+	color: white;
+	border: none;
+	padding: 12px 24px;
+	font-size: 16px;
+	font-weight: bold;
+	cursor: pointer;
+	border-radius: 5px;
+	transition: background-color 0.3s ease;
+	text-decoration: none;
+	display: flex;
+	align-items: center;
 }
 
 .github-btn:hover {
-    background-color: #24292f;
+	background-color: #24292f;
 }
 
 .github-icon {
-    width: 24px;
-    height: 24px;
-    margin-right: 8px;
+	width: 24px;
+	height: 24px;
+	margin-right: 8px;
 }
 
 .github-icon path {
-    fill: #ffffff;
+	fill: #ffffff;
 }
