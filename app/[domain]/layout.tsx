@@ -48,7 +48,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
         async function setRole() {
             const role = await localStorage.getItem('userRole');
             setLoggedInUserRole(role!);
-        }
+            }
         setRole();
     }, [])
 
@@ -81,7 +81,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
         <Container className={inter.className}>
             <Sidebar>
                 <StyledApplicationName>
-                    {HomePageConstants.APPLICATION_NAME}
+                    {HomePageConstants.ADMIN_DASHBOARD}
                 </StyledApplicationName>
                 <StyledLinkContainer container direction={'column'} justifyContent={'space-between'}>
                     <Grid>
@@ -118,7 +118,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
             <ContentWrapper>
                 <Header>
                     <StyledPageHeader>
-                        {HomePageConstants.EMPLOYEE_MANAGEMENT_SYSTEM}
+                        {HomePageConstants.APPLICATION_NAME}
                     </StyledPageHeader>
                 </Header>
                 <Content>

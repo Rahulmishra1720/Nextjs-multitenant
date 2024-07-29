@@ -15,11 +15,11 @@ const Page = ({ children }: { children: React.ReactNode }): React.ReactElement =
         const redirectUserBasedOnRole = async () => {
             if (user && user.sub) {
                 try {
-                    const token = await getAccessToken();
-                    const roles = await fetchRoleByUserIdAsync(token, user.sub);
-                    if (roles && roles.length > 0 && roles[0].name === 'Admin') {
-                        await localStorage.setItem('userRole', roles[0].name);
-                        await router.push('/edu/admin');
+                const token = await getAccessToken();
+                const roles = await fetchRoleByUserIdAsync(token, user.sub);
+                if (roles && roles.length > 0 && roles[0].name === 'Admin') {
+                    await localStorage.setItem('userRole', roles[0].name);
+                    await router.push('/edu/admin');
                     } else if (roles.length === 0) {
                         await assignDefaultRoleToUser(token, user.sub);
                         await localStorage.setItem('userRole', 'user');
