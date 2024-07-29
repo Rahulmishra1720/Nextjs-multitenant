@@ -1,13 +1,23 @@
 'use client';
-import { UserContext, useUser, withPageAuthRequired } from "@auth0/nextjs-auth0/client";
+import { 
+    UserContext, 
+    useUser, 
+    withPageAuthRequired 
+} from "@auth0/nextjs-auth0/client";
 import LogoutIcon from '@mui/icons-material/Logout';
 import { Grid } from '@mui/material';
 import { NextFont } from 'next/dist/compiled/@next/font';
 import { Inter } from "next/font/google";
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { 
+    useParams, 
+    useRouter 
+} from 'next/navigation';
 import React, { ReactNode, useState } from 'react';
-import { HomePageConstants, SideBarItems } from '.././constants';
+import { 
+    HomePageConstants, 
+    SideBarItems 
+} from '.././constants';
 import Loader from '../components/Loader';
 import { supabase } from '../supabase';
 import {
@@ -23,12 +33,14 @@ import {
     StyledPageHeader,
     StyledSignOutSpan
 } from './HomePage.style';
+import { Params } from "next/dist/shared/lib/router/utils/route-matcher";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 const inter: NextFont = Inter({ subsets: ["latin"] });
 
 const Layout = ({ children }: { children: ReactNode }) => {
     const loggedInUserData: UserContext = useUser();
-    const [loggedInUserRole, setLoggedInUserRole] = useState('');
+    const [loggedInUserRole, setLoggedInUserRole] = useState<string>('');
     const [openIndexes, setOpenIndexes] = useState<any>({});
 
     const toggleOpen = (index: number) => {
@@ -37,8 +49,8 @@ const Layout = ({ children }: { children: ReactNode }) => {
             [index]: !prevState[index]
         }));
     };
-    const param = useParams();
-    const router = useRouter();
+    const param: Params = useParams();
+    const router: AppRouterInstance = useRouter();
 
     React.useEffect(() => {
         handleTenantData();
@@ -46,15 +58,15 @@ const Layout = ({ children }: { children: ReactNode }) => {
 
     React.useEffect(() => {
         async function setRole() {
-            const role = await localStorage.getItem('userRole');
-            setLoggedInUserRole(role!);
-            }
+            const role: string | null = await localStorage.getItem('userRole');
+            setLoggedInUserRole(role || '');
+        }
         setRole();
     }, [])
 
     //supabase
     const getTenants = async (): Promise<any[]> => {
-        let { data, error } = await supabase.from('tenant').select('*');
+        let { data } = await supabase.from('tenant').select('*');
         return data || [];
     };
     const saveTenantInfo = async (tenant: any) => {
@@ -65,7 +77,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
     const handleTenantData = async (): Promise<void> => {
         if (loggedInUserData.user) {
             const tenants = await getTenants();
-            const isNewTenant = tenants.some((tenant) => tenant.tenant_id === loggedInUserData.user?.sub);
+            const isNewTenant: boolean = tenants.some((tenant) => tenant.tenant_id === loggedInUserData.user?.sub);
             if (!isNewTenant) {
                 const tenant = {
                     tenant_id: loggedInUserData.user?.sub,
