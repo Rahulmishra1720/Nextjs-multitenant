@@ -7,10 +7,10 @@ export const getAccessToken = async () => {
 			'Content-Type': 'application/json',
 		},
 		body: JSON.stringify({
-			client_id: '28Dgq35k25Var7eSmTwG8ldoG9WD7ASi',
-			audience: 'https://dev-x1bheham552up46h.us.auth0.com/api/v2/',
-			client_secret: 'pCtUr9ggw6rVmoHbxoZPqw0XoTNdtrWL0m1GtqXPLxgMWAxjXfVJbmd0amV8TuEp',
-			grant_type: 'client_credentials',
+			client_id: process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID,
+			audience: `${process.env.NEXT_PUBLIC_AUTH0_AUDIENCE}/`,
+			client_secret: process.env.NEXT_PUBLIC_AUTH0_CLIENT_CREDENTIAL,
+			grant_type: process.env.NEXT_PUBLIC_AUTH0_GRANT_TYPE,
 		}),
 	});
 	const data = await res.json();
@@ -19,7 +19,7 @@ export const getAccessToken = async () => {
 };
 
 export const fetchRolesAsync = async (auth0AccessToken: string) => {
-	const res = await fetch(`https://dev-x1bheham552up46h.us.auth0.com/api/v2/roles`, {
+	const res = await fetch(`${process.env.NEXT_PUBLIC_AUTH0_AUDIENCE}/roles`, {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json',
@@ -52,7 +52,7 @@ export const fetchUsersWithRoles = async (auth0AccessToken: string) => {
 };
 
 export const fetchRoleByUserIdAsync = async (auth0AccessToken: string, userId: string) => {
-	const res = await fetch(`https://dev-x1bheham552up46h.us.auth0.com/api/v2/users/${userId}/roles`, {
+	const res = await fetch(`${process.env.NEXT_PUBLIC_AUTH0_AUDIENCE}/users/${userId}/roles`, {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json',
@@ -64,7 +64,7 @@ export const fetchRoleByUserIdAsync = async (auth0AccessToken: string, userId: s
 };
 
 export const fetchUsersAsync = async (auth0AccessToken: string) => {
-	const res = await fetch('https://dev-x1bheham552up46h.us.auth0.com/api/v2/users', {
+	const res = await fetch(`${process.env.NEXT_PUBLIC_AUTH0_AUDIENCE}/users`, {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ export const fetchUsersAsync = async (auth0AccessToken: string) => {
 };
 
 export const createRoleAsync = async (auth0AccessToken: string, roleName: string, roleDescription: string) => {
-	await fetch('https://dev-x1bheham552up46h.us.auth0.com/api/v2/roles', {
+	await fetch(`${process.env.NEXT_PUBLIC_AUTH0_AUDIENCE}/roles`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ export const createRoleAsync = async (auth0AccessToken: string, roleName: string
 };
 
 export const assignRoleAsync = async (auth0AccessToken: string, selectedRoleId: string, selectedUserId: string) => {
-	await fetch(`https://dev-x1bheham552up46h.us.auth0.com/api/v2/roles/${selectedRoleId}/users`, {
+	await fetch(`${process.env.NEXT_PUBLIC_AUTH0_AUDIENCE}/roles/${selectedRoleId}/users`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -100,7 +100,7 @@ export const assignRoleAsync = async (auth0AccessToken: string, selectedRoleId: 
 export const assignDefaultRoleToUser = async (auth0AccessToken: string, selectedUserId: string) => {
 	const roles = await fetchRolesAsync(auth0AccessToken);
 	const defaultRole = roles.find((role: any) => role.name === 'user');
-	await fetch(`https://dev-x1bheham552up46h.us.auth0.com/api/v2/roles/${defaultRole.id}/users`, {
+	await fetch(`${process.env.NEXT_PUBLIC_AUTH0_AUDIENCE}/roles/${defaultRole.id}/users`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ export const assignDefaultRoleToUser = async (auth0AccessToken: string, selected
 };
 
 export const deleteUserAsync = async (auth0AccessToken: string, userId: string) => {
-	const res = await fetch(`https://dev-x1bheham552up46h.us.auth0.com/api/v2/users/${userId}`, {
+	const res = await fetch(`${process.env.NEXT_PUBLIC_AUTH0_AUDIENCE}/users/${userId}`, {
 		method: 'DELETE',
 		headers: {
 			'Content-Type': 'application/json',
@@ -122,7 +122,7 @@ export const deleteUserAsync = async (auth0AccessToken: string, userId: string) 
 };
 
 export const saveUserAsync = async (auth0AccessToken: string, user: any) => {
-	const res = await fetch(`https://dev-x1bheham552up46h.us.auth0.com/api/v2/users`, {
+	const res = await fetch(`${process.env.NEXT_PUBLIC_AUTH0_AUDIENCE}/users`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -135,7 +135,7 @@ export const saveUserAsync = async (auth0AccessToken: string, user: any) => {
 };
 
 export const searchUserAsync = async (auth0AccessToken: string, queryString: any) => {
-	const res = await fetch(`https://dev-x1bheham552up46h.us.auth0.com/api/v2/users?q=${queryString}&search_engine=v3`, {
+	const res = await fetch(`${process.env.NEXT_PUBLIC_AUTH0_AUDIENCE}/users?q=${queryString}&search_engine=v3`, {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json',
@@ -167,6 +167,6 @@ export const searchUsersWithRoles = async (auth0AccessToken: string, queryString
 	return usersWithRoles;
 };
 
-export const formattedDate = (dateString: string) => {
+export const formattedDate = (dateString: string): string => {
 	return moment(dateString).format('DD MMM YYYY, h:mm a');
 };

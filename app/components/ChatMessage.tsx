@@ -2,16 +2,20 @@
 import * as React from 'react';
 import { Container, Paper, Box, Skeleton, TextField, Button } from '@mui/material';
 import { ChatMessageConstants } from '../constants';
+import { search } from '../_lib/openAiService';
+import { IMessage, ISearchQueryResponse } from '../interfaces';
 
 const ChatMessage = (): React.ReactElement => {
-	const [query, setQuery] = React.useState('');
-	const [messages, setMessages] = React.useState([]);
-	const [loading, setLoading] = React.useState(false);
+	const [query, setQuery] = React.useState<string>('');
+	const [messages, setMessages] = React.useState<Array<IMessage>>([]);
+	const [loading, setLoading] = React.useState<boolean>(false);
 
 	const handleSearch = async () => {
 		setLoading(true);
-		// const { data } = await axios.get('/api/search', { params: { query } });
-		// setMessages([...messages, { type: 'user', text: query }, { type: 'bot', text: data.answer }]);
+		const result: ISearchQueryResponse | undefined = await search(query);
+		if (result) {
+			setMessages([...messages, { type: 'user', text: query }, { type: 'bot', text: result.extract }]);
+		}
 		setQuery('');
 		setLoading(false);
 	};
@@ -19,7 +23,7 @@ const ChatMessage = (): React.ReactElement => {
 	return (
 		<Container maxWidth="md">
 			<Paper elevation={3} sx={{ padding: 4, marginTop: 4 }}>
-				<Box sx={{ height: '400px', overflowY: 'auto', marginBottom: 2 }}>
+				<Box sx={{ height: '65vh', overflowY: 'auto', marginBottom: 2 }}>
 					{messages.map((msg, index) => (
 						<Box
 							key={index}

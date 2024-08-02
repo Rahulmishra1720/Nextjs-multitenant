@@ -25,6 +25,7 @@ import {
 } from './HomePage.style';
 import { Params } from 'next/dist/shared/lib/router/utils/route-matcher';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import { ITenant } from '../interfaces';
 
 const inter: NextFont = Inter({ subsets: ['latin'] });
 
@@ -33,8 +34,8 @@ const Layout = ({ children }: { children: ReactNode }) => {
 	const [loggedInUserRole, setLoggedInUserRole] = useState<string>('');
 	const [openIndexes, setOpenIndexes] = useState<any>({});
 
-	const toggleOpen = (index: number) => {
-		setOpenIndexes((prevState: any[]) => ({
+	const toggleOpen = (index: number): void => {
+		setOpenIndexes((prevState: any) => ({
 			...prevState,
 			[index]: !prevState[index],
 		}));
@@ -47,7 +48,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
 	}, []);
 
 	React.useEffect(() => {
-		async function setRole() {
+		async function setRole(): Promise<void> {
 			const role: string | null = await localStorage.getItem('userRole');
 			setLoggedInUserRole(role || '');
 		}
@@ -55,19 +56,19 @@ const Layout = ({ children }: { children: ReactNode }) => {
 	}, []);
 
 	//supabase
-	const getTenants = async (): Promise<any[]> => {
+	const getTenants = async (): Promise<Array<ITenant>> => {
 		let { data } = await supabase.from('tenant').select('*');
 		return data || [];
 	};
-	const saveTenantInfo = async (tenant: any) => {
+	const saveTenantInfo = async (tenant: ITenant) => {
 		await supabase.from('tenant').upsert([{ ...tenant }]);
 	};
 	const handleTenantData = async (): Promise<void> => {
 		if (loggedInUserData.user) {
-			const tenants = await getTenants();
+			const tenants: Array<ITenant> = await getTenants();
 			const isNewTenant: boolean = tenants.some((tenant) => tenant.tenant_id === loggedInUserData.user?.sub);
 			if (!isNewTenant) {
-				const tenant = {
+				const tenant: ITenant = {
 					tenant_id: loggedInUserData.user?.sub,
 					role: loggedInUserRole,
 					tenant_email: loggedInUserData.user?.email,

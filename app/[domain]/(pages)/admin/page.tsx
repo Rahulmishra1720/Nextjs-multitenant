@@ -21,10 +21,12 @@ import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import ClearIcon from '@mui/icons-material/Clear';
 import { SearchOutlined } from '@mui/icons-material';
+import { IRole } from '../../../interfaces';
+import { IUser } from '../../../interfaces';
 
 export default function AdminDashboard() {
-	const [roles, setRoles] = useState([]);
-	const [users, setUsers] = useState([]);
+	const [roles, setRoles] = useState<Array<IRole>>([]);
+	const [users, setUsers] = useState<Array<IUser>>([]);
 	const [roleName, setRoleName] = useState<string>('');
 	const [roleDescription, setRoleDescription] = useState<string>('');
 	const [selectedRoleId, setSelectedRoleId] = useState<string>('');
@@ -47,33 +49,33 @@ export default function AdminDashboard() {
 		{
 			field: 'id',
 			headerName: 'ID',
-			width: 200,
+			width: 250,
 		},
 		{
 			field: 'name',
 			headerName: 'Name',
-			width: 200,
+			width: 250,
 		},
 		{
 			field: 'role',
 			headerName: 'Role',
-			width: 150,
+			width: 220,
 		},
 		{
 			field: 'joined_date',
 			headerName: 'Joined Date',
-			width: 180,
+			width: 220,
 		},
 		{
 			field: 'last_login',
 			headerName: 'Last Login',
-			width: 180,
+			width: 220,
 		},
 		{
 			field: 'actions',
 			headerName: 'Action',
 			description: 'Edit or delete user',
-			width: 150,
+			width: 220,
 			sortable: false,
 			filterable: false,
 			renderCell: (params) => (
@@ -255,6 +257,7 @@ export default function AdminDashboard() {
 			</div>
 			<Box sx={{ height: '100%', width: '100%' }}>
 				<DataGrid
+					autoHeight
 					rows={rows}
 					columns={columns}
 					initialState={{
@@ -395,10 +398,11 @@ export default function AdminDashboard() {
 									<Select
 										value={addUserFormData.user_metadata.roles[0]}
 										onChange={(event) => {
-											const role: any = roles.find((role: any) => role.name === event.target.value);
+											const role: IRole = roles.find((role: IRole) => role.name === event.target.value)!;
 											//@ts-ignore
 											setAddUserFormData({
 												...addUserFormData,
+												//@ts-ignore
 												user_metadata: { ...addUserFormData.user_metadata, roles: [role.name] },
 											});
 											setSelectedRoleId(role.id);

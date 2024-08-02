@@ -100,7 +100,7 @@ export const StyledLinkContainer = styled(Grid)`
 `;
 
 export const StyledApplicationName = styled('div')`
-	font-size: 18px;
+	font-size: 20px;
 	padding-top: 10px;
 `;
 

@@ -6,31 +6,32 @@ import LoginButton from './components/login/LoginButton';
 import Loader from './components/Loader';
 import { assignDefaultRoleToUser, fetchRoleByUserIdAsync, getAccessToken } from './_lib/util';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import { IRole } from './interfaces';
 
 const Page = ({ children }: { children: React.ReactNode }): React.ReactElement => {
 	const { user } = useUser();
 	const router: AppRouterInstance = useRouter();
 
 	React.useEffect(() => {
-		const redirectUserBasedOnRole = async () => {
+		const redirectUserBasedOnRole = async (): Promise<void> => {
 			if (user && user.sub) {
 				try {
-					const token = await getAccessToken();
-					const roles = await fetchRoleByUserIdAsync(token, user.sub);
+					const token: string = await getAccessToken();
+					const roles: Array<IRole> = await fetchRoleByUserIdAsync(token, user.sub);
 					if (roles && roles.length > 0 && roles[0].name === 'Admin') {
 						await localStorage.setItem('userRole', roles[0].name);
-						await router.push('/edu/admin');
+						await router.push('/query-bud/admin');
 					} else if (roles.length === 0) {
 						await assignDefaultRoleToUser(token, user.sub);
 						await localStorage.setItem('userRole', 'user');
-						await router.push('/edu');
+						await router.push('/query-bud');
 					} else {
 						await localStorage.setItem('userRole', roles[0].name);
-						await router.push('/edu');
+						await router.push('/query-bud');
 					}
 				} catch (error) {
 					console.error('Error fetching user roles:', error);
-					await router.push('/edu');
+					await router.push('/query-bud');
 					// Handle error or redirect to an error page
 				}
 			}
