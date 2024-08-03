@@ -11,6 +11,7 @@ const ChatMessage = (): React.ReactElement => {
 	const [loading, setLoading] = React.useState<boolean>(false);
 
 	const handleSearch = async () => {
+		setMessages([...messages, { type: 'user', text: query }]);
 		setLoading(true);
 		const result: ISearchQueryResponse | undefined = await search(query);
 		if (result) {

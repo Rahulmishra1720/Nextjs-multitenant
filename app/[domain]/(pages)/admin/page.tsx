@@ -92,7 +92,6 @@ export default function AdminDashboard() {
 	];
 
 	const rows = users.map((user) => {
-		//@ts-ignore
 		return {
 			id: user.user_id,
 			name: user.name,
@@ -132,7 +131,6 @@ export default function AdminDashboard() {
 	};
 
 	const fetchUsers = (): void => {
-		//@ts-ignore
 		fetchUsersWithRoles(auth0AccessToken).then((data) => setUsers(data));
 	};
 
@@ -206,7 +204,6 @@ export default function AdminDashboard() {
 	const handleSearchClick = (): void => {
 		searchString &&
 			searchUsersWithRoles(auth0AccessToken as string, searchString).then((user) => {
-				//@ts-ignore
 				setUsers(user);
 			});
 	};
@@ -309,9 +306,7 @@ export default function AdminDashboard() {
 								label="Select Role"
 							>
 								{roles.map((role) => (
-									// @ts-ignore
 									<MenuItem key={role.id} value={role.name} id={role.id}>
-										{/* @ts-ignore */}
 										{role.name}
 									</MenuItem>
 								))}
@@ -399,7 +394,6 @@ export default function AdminDashboard() {
 										value={addUserFormData.user_metadata.roles[0]}
 										onChange={(event) => {
 											const role: IRole = roles.find((role: IRole) => role.name === event.target.value)!;
-											//@ts-ignore
 											setAddUserFormData({
 												...addUserFormData,
 												//@ts-ignore
@@ -410,9 +404,7 @@ export default function AdminDashboard() {
 										label="Select Role"
 									>
 										{roles.map((role) => (
-											// @ts-ignore
 											<MenuItem key={role.id} value={role.name} id={role.id}>
-												{/* @ts-ignore */}
 												{role.name}
 											</MenuItem>
 										))}
