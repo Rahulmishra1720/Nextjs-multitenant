@@ -5,6 +5,6 @@ export const metadata: Metadata = {
 	title: 'Dashboard',
 };
 
-export default function Page({ children }: { children: ReactNode }) {
+export default function Page(children: ReactNode) {
 	return <div>{children}</div>;
 }
