@@ -3,3 +3,7 @@ export * from './ISearchQueryResponse';
 export * from './IRole';
 export * from './IUser';
 export * from './ITenant';
+export * from './IStackOverflowSearchResponse';
+export * from './IAnswer';
+export * from './IQuestion';
+export * from './IUserPreferenceModal';

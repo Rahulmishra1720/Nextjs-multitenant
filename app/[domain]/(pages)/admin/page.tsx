@@ -1,11 +1,24 @@
 // pages/admin/dashboard.js
 'use client';
-import { Button, FormControl, Grid, IconButton, InputLabel, MenuItem, Modal, Select, TextField } from '@mui/material';
+import {
+	Button,
+	FormControl,
+	FormControlLabel,
+	FormLabel,
+	Grid,
+	IconButton,
+	InputLabel,
+	MenuItem,
+	Modal,
+	Radio,
+	RadioGroup,
+	Select,
+	TextField,
+} from '@mui/material';
 import React, { useState, useEffect } from 'react';
 import jwt from 'jsonwebtoken';
 import {
 	assignRoleAsync,
-	createRoleAsync,
 	deleteUserAsync,
 	fetchRolesAsync,
 	fetchUsersWithRoles,
@@ -23,12 +36,12 @@ import ClearIcon from '@mui/icons-material/Clear';
 import { SearchOutlined } from '@mui/icons-material';
 import { IRole } from '../../../interfaces';
 import { IUser } from '../../../interfaces';
+import { useUser } from '@auth0/nextjs-auth0/client';
 
 export default function AdminDashboard() {
+	const { user: loggedInUser } = useUser();
 	const [roles, setRoles] = useState<Array<IRole>>([]);
 	const [users, setUsers] = useState<Array<IUser>>([]);
-	const [roleName, setRoleName] = useState<string>('');
-	const [roleDescription, setRoleDescription] = useState<string>('');
 	const [selectedRoleId, setSelectedRoleId] = useState<string>('');
 	const [openEditModal, setOpenEditModal] = useState<boolean>(false);
 	const [editUserFormData, setEditUserFormData] = useState({ user_id: '', name: '', roles: '' });
@@ -39,7 +52,8 @@ export default function AdminDashboard() {
 		name: '',
 		password: '',
 		user_metadata: {
-			roles: [],
+			roles: ['user'],
+			created_by_admin_id: loggedInUser?.sub,
 		},
 		connection: 'Username-Password-Authentication',
 	});
@@ -131,27 +145,19 @@ export default function AdminDashboard() {
 	};
 
 	const fetchUsers = (): void => {
-		fetchUsersWithRoles(auth0AccessToken).then((data) => setUsers(data));
-	};
-
-	const createRole = () => {
-		createRoleAsync(auth0AccessToken as string, roleName, roleDescription).then(() => {
-			fetchRoles();
-			setRoleName('');
-			setRoleDescription('');
-		});
+		fetchUsersWithRoles(auth0AccessToken, loggedInUser?.sub!).then((data) => setUsers(data));
 	};
 
 	const deleteUser = (selectedUserId: string): void => {
 		deleteUserAsync(auth0AccessToken as string, selectedUserId).then(() => {
-			const usersAfterDelete = users.filter((user: any) => user.user_id !== selectedUserId);
+			const usersAfterDelete = users.filter((user: IUser) => user.user_id !== selectedUserId);
 			setUsers(usersAfterDelete);
 		});
 	};
 
 	const handleEditClick = (userId: string): void => {
-		const selectedUsers: any = users.find((user: any) => user.user_id === userId);
-		setEditUserFormData(selectedUsers!);
+		const selectedUsers: IUser | undefined = users.find((user: IUser) => user.user_id === userId);
+		setEditUserFormData({ ...selectedUsers!, roles: selectedUsers?.user_metadata.roles! });
 		setOpenEditModal(true);
 	};
 
@@ -169,9 +175,11 @@ export default function AdminDashboard() {
 	};
 
 	const handleAddUserSave = (): void => {
-		const selectedRoles: any = roles.find((role: any) => role.name === addUserFormData.user_metadata.roles[0]);
-		saveUserAsync(auth0AccessToken, addUserFormData).then((user: any) => {
-			assignRoleAsync(auth0AccessToken as string, selectedRoles.id, user.user_id).then(() => {
+		const selectedRoles: IRole | undefined = roles.find(
+			(role: IRole) => role.name === addUserFormData.user_metadata.roles[0],
+		);
+		saveUserAsync(auth0AccessToken, addUserFormData).then((user: IUser) => {
+			assignRoleAsync(auth0AccessToken as string, selectedRoles?.id!, user.user_id).then(() => {
 				setTimeout(() => {
 					fetchUsers();
 				}, 2000);
@@ -182,6 +190,7 @@ export default function AdminDashboard() {
 					password: '',
 					user_metadata: {
 						roles: [],
+						created_by_admin_id: loggedInUser?.sub,
 					},
 					connection: 'Username-Password-Authentication',
 				});
@@ -196,6 +205,7 @@ export default function AdminDashboard() {
 			password: '',
 			user_metadata: {
 				roles: [],
+				created_by_admin_id: loggedInUser?.sub,
 			},
 			connection: 'Username-Password-Authentication',
 		});
@@ -211,6 +221,14 @@ export default function AdminDashboard() {
 		await fetchUsers();
 		setSearchString('');
 	};
+	const handleRoleChange = (event: React.ChangeEvent<HTMLInputElement>, role: string) => {
+		setAddUserFormData({
+			...addUserFormData,
+			//@ts-ignore
+			user_metadata: { roles: [role] },
+		});
+	};
+
 	return (
 		<>
 			<div
@@ -254,6 +272,9 @@ export default function AdminDashboard() {
 			</div>
 			<Box sx={{ height: '100%', width: '100%' }}>
 				<DataGrid
+					localeText={{
+						noRowsLabel: 'No users found.',
+					}}
 					autoHeight
 					rows={rows}
 					columns={columns}
@@ -299,9 +320,9 @@ export default function AdminDashboard() {
 							<Select
 								value={editUserFormData.roles}
 								onChange={(event) => {
-									const role: any = roles.find((role: any) => role.name === event.target.value);
-									setEditUserFormData({ ...editUserFormData, roles: role.name });
-									setSelectedRoleId(role.id);
+									const role: IRole | undefined = roles.find((role: IRole) => role.name === event.target.value);
+									setEditUserFormData({ ...editUserFormData, roles: role?.name! });
+									setSelectedRoleId(role?.id!);
 								}}
 								label="Select Role"
 							>
@@ -345,88 +366,84 @@ export default function AdminDashboard() {
 							alignItems: 'center',
 						}}
 					>
-						<Grid>
-							<h2>{'Add User'}</h2>
-						</Grid>
-						<Grid container spacing={2}>
-							<Grid item xs={12} sm={4}>
-								<TextField
-									label="Name"
-									name="name"
-									value={addUserFormData.name}
-									onChange={(event) => {
-										setAddUserFormData({ ...addUserFormData, name: event.target.value });
-									}}
-									fullWidth
-									margin="normal"
-								/>
+						<FormControl sx={{ m: 1, minWidth: 120 }}>
+							<Grid container item justifyContent={'center'} alignItems={'center'}>
+								<h2>{'Add User'}</h2>
 							</Grid>
-							<Grid item xs={12} sm={4}>
-								<TextField
-									label="Email"
-									name="email"
-									value={addUserFormData.email}
-									onChange={(event) => {
-										setAddUserFormData({ ...addUserFormData, email: event.target.value });
-									}}
-									fullWidth
-									margin="normal"
-									type="email"
-								/>
-							</Grid>
-							<Grid item xs={12} sm={4}>
-								<TextField
-									label="Password"
-									name="password"
-									value={addUserFormData.password}
-									onChange={(event) => {
-										setAddUserFormData({ ...addUserFormData, password: event.target.value });
-									}}
-									fullWidth
-									margin="normal"
-									type="password"
-								/>
-							</Grid>
-							<Grid item xs={12} sm={4}>
-								<FormControl sx={{ m: 1, minWidth: 120 }}>
-									<InputLabel>{'Select Role'}</InputLabel>
-									<Select
-										value={addUserFormData.user_metadata.roles[0]}
+							<Grid container spacing={2}>
+								<Grid item xs={12} sm={4}>
+									<TextField
+										label="Name"
+										name="name"
+										value={addUserFormData.name}
 										onChange={(event) => {
-											const role: IRole = roles.find((role: IRole) => role.name === event.target.value)!;
-											setAddUserFormData({
-												...addUserFormData,
-												//@ts-ignore
-												user_metadata: { ...addUserFormData.user_metadata, roles: [role.name] },
-											});
-											setSelectedRoleId(role.id);
+											setAddUserFormData({ ...addUserFormData, name: event.target.value });
 										}}
-										label="Select Role"
+										fullWidth
+										margin="normal"
+										required
+										error={addUserFormData.name === ''}
+									/>
+								</Grid>
+								<Grid item xs={12} sm={4}>
+									<TextField
+										label="Email"
+										name="email"
+										value={addUserFormData.email}
+										onChange={(event) => {
+											setAddUserFormData({ ...addUserFormData, email: event.target.value });
+										}}
+										fullWidth
+										margin="normal"
+										type="email"
+										required
+										error={addUserFormData.email === ''}
+									/>
+								</Grid>
+								<Grid item xs={12} sm={4}>
+									<TextField
+										label="Password"
+										name="password"
+										value={addUserFormData.password}
+										onChange={(event) => {
+											setAddUserFormData({ ...addUserFormData, password: event.target.value });
+										}}
+										fullWidth
+										margin="normal"
+										type="password"
+										required
+										error={addUserFormData.password === ''}
+									/>
+								</Grid>
+								<Grid item xs={12} sm={12}>
+									<FormLabel>{'Select Roles'}</FormLabel>
+									<RadioGroup
+										name="controlled-radio-buttons-group"
+										value={addUserFormData.user_metadata.roles[0]}
+										onChange={handleRoleChange}
 									>
-										{roles.map((role) => (
-											<MenuItem key={role.id} value={role.name} id={role.id}>
-												{role.name}
-											</MenuItem>
-										))}
-									</Select>
-								</FormControl>
+										<FormControlLabel value="Super Admin" control={<Radio />} label="Super Admin" />
+										<FormControlLabel value="Admin" control={<Radio />} label="Admin" />
+										<FormControlLabel value="user" control={<Radio />} label="User" />
+									</RadioGroup>
+								</Grid>
 							</Grid>
-						</Grid>
-						<Box
-							sx={{
-								display: 'flex',
-								justifyContent: 'space-between',
-								width: '100%',
-								mt: 2,
-							}}
-						>
-							<Button variant="outlined" onClick={() => handleAddUserModalCancelClick()}>
-								{'Cancel'}
-							</Button>
-							<Button variant="contained" onClick={handleAddUserSave}>
-								{'Save'}
-							</Button>
-						</Box>
+							<Box
+								sx={{
+									display: 'flex',
+									justifyContent: 'space-between',
+									width: '100%',
+									mt: 2,
+								}}
+							>
+								<Button variant="outlined" onClick={() => handleAddUserModalCancelClick()}>
+									{'Cancel'}
+								</Button>
+								<Button variant="contained" onClick={handleAddUserSave}>
+									{'Save'}
+								</Button>
+							</Box>
+						</FormControl>
 					</Box>
 				</Modal>
 			</Box>

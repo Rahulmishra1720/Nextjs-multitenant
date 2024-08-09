@@ -1,4 +1,3 @@
-// app/layout.js
 import { ReactNode } from 'react';
 import ClientWrapper from './components/clientWrapper';
 import { Metadata } from 'next';
@@ -9,20 +8,20 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
-		<html>
-			<body
-				style={{
-					margin: '0',
-					padding: '0',
-					height: '100%',
-					display: 'block',
-					fontFamily: 'Arial, sans-serif !important',
-				}}
-			>
-				<ClientWrapper>
+		<ClientWrapper>
+			<html>
+				<body
+					style={{
+						margin: '0',
+						padding: '0',
+						height: '100%',
+						display: 'block',
+						fontFamily: 'Arial, sans-serif !important',
+					}}
+				>
 					<div>{children}</div>
-				</ClientWrapper>
-			</body>
-		</html>
+				</body>
+			</html>
+		</ClientWrapper>
 	);
 }

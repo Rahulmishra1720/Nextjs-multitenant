@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Container, Paper, Box, Skeleton, TextField, Button } from '@mui/material';
 import { ChatMessageConstants } from '../constants';
 import { search } from '../_lib/openAiService';
-import { IMessage, ISearchQueryResponse } from '../interfaces';
+import { IAnswer, IMessage } from '../interfaces';
 
 const ChatMessage = (): React.ReactElement => {
 	const [query, setQuery] = React.useState<string>('');
@@ -13,9 +13,11 @@ const ChatMessage = (): React.ReactElement => {
 	const handleSearch = async () => {
 		setMessages([...messages, { type: 'user', text: query }]);
 		setLoading(true);
-		const result: ISearchQueryResponse | undefined = await search(query);
+		const result: IAnswer | undefined = await search(query);
 		if (result) {
-			setMessages([...messages, { type: 'user', text: query }, { type: 'bot', text: result.extract }]);
+			setMessages([...messages, { type: 'user', text: query }, { type: 'bot', text: result.body }]);
+		} else {
+			setMessages([...messages, { type: 'user', text: query }, { type: 'bot', text: 'No result found' }]);
 		}
 		setQuery('');
 		setLoading(false);
@@ -41,9 +43,8 @@ const ChatMessage = (): React.ReactElement => {
 									backgroundColor: msg.type === 'user' ? 'primary.main' : 'grey.300',
 									color: msg.type === 'user' ? 'white' : 'black',
 								}}
-							>
-								{msg.text}
-							</Box>
+								dangerouslySetInnerHTML={{ __html: msg.text }}
+							/>
 						</Box>
 					))}
 					{loading && (

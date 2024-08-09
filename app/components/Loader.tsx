@@ -11,7 +11,7 @@ const Loader = (): React.ReactElement => {
 			alignItems={'center'}
 			alignContent={'center'}
 		>
-			<CircularProgress />
+			<CircularProgress size={100} thickness={3.6} variant="indeterminate" />
 		</Grid>
 	);
 };

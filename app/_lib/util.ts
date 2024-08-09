@@ -1,4 +1,5 @@
 import moment from 'moment';
+import { IRole, IUser } from '../interfaces';
 
 export const getAccessToken = async () => {
 	const res = await fetch('https://dev-x1bheham552up46h.us.auth0.com/oauth/token', {
@@ -30,11 +31,11 @@ export const fetchRolesAsync = async (auth0AccessToken: string) => {
 	return data;
 };
 
-export const fetchUsersWithRoles = async (auth0AccessToken: string) => {
-	const users = await fetchUsersAsync(auth0AccessToken);
+export const fetchUsersWithRoles = async (auth0AccessToken: string, tenantId: string) => {
+	const users = await fetchUsersAsync(auth0AccessToken, tenantId);
 
 	const usersWithRoles = await Promise.all(
-		users.map(async (user: any) => {
+		users.map(async (user: IUser) => {
 			const roles = await fetchRoleByUserIdAsync(auth0AccessToken, user.user_id);
 			const userMetadata = user.user_metadata || {};
 
@@ -42,7 +43,7 @@ export const fetchUsersWithRoles = async (auth0AccessToken: string) => {
 				...user,
 				user_metadata: {
 					...userMetadata,
-					roles: roles.map((role: any) => role.name).join(', '),
+					roles: roles.map((role: IRole) => role.name).join(', '),
 				},
 			};
 		}),
@@ -63,7 +64,7 @@ export const fetchRoleByUserIdAsync = async (auth0AccessToken: string, userId: s
 	return data;
 };
 
-export const fetchUsersAsync = async (auth0AccessToken: string) => {
+export const fetchUsersAsync = async (auth0AccessToken: string, tenantId: string) => {
 	const res = await fetch(`${process.env.NEXT_PUBLIC_AUTH0_AUDIENCE}/users`, {
 		method: 'GET',
 		headers: {
@@ -71,8 +72,11 @@ export const fetchUsersAsync = async (auth0AccessToken: string) => {
 			Authorization: `bearer ${auth0AccessToken}`,
 		},
 	});
-	const data = await res.json();
-	return data;
+	const users = await res.json();
+	const filteredUsers = users.filter(
+		(user: any) => user.user_metadata && user.user_metadata.created_by_admin_id === tenantId,
+	);
+	return filteredUsers;
 };
 
 export const createRoleAsync = async (auth0AccessToken: string, roleName: string, roleDescription: string) => {
@@ -87,19 +91,19 @@ export const createRoleAsync = async (auth0AccessToken: string, roleName: string
 };
 
 export const assignRoleAsync = async (auth0AccessToken: string, selectedRoleId: string, selectedUserId: string) => {
-	await fetch(`${process.env.NEXT_PUBLIC_AUTH0_AUDIENCE}/roles/${selectedRoleId}/users`, {
+	await fetch(`${process.env.NEXT_PUBLIC_AUTH0_AUDIENCE}/users/${selectedUserId}/roles`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
 			Authorization: `bearer ${auth0AccessToken}`,
 		},
-		body: JSON.stringify({ users: [selectedUserId] }),
+		body: JSON.stringify({ roles: [selectedRoleId] }),
 	});
 };
 
 export const assignDefaultRoleToUser = async (auth0AccessToken: string, selectedUserId: string) => {
 	const roles = await fetchRolesAsync(auth0AccessToken);
-	const defaultRole = roles.find((role: any) => role.name === 'user');
+	const defaultRole = roles.find((role: IRole) => role.name === 'user');
 	await fetch(`${process.env.NEXT_PUBLIC_AUTH0_AUDIENCE}/roles/${defaultRole.id}/users`, {
 		method: 'POST',
 		headers: {
@@ -134,7 +138,7 @@ export const saveUserAsync = async (auth0AccessToken: string, user: any) => {
 	return data;
 };
 
-export const searchUserAsync = async (auth0AccessToken: string, queryString: any) => {
+export const searchUserAsync = async (auth0AccessToken: string, queryString: string) => {
 	const res = await fetch(`${process.env.NEXT_PUBLIC_AUTH0_AUDIENCE}/users?q=${queryString}&search_engine=v3`, {
 		method: 'GET',
 		headers: {
@@ -146,11 +150,11 @@ export const searchUserAsync = async (auth0AccessToken: string, queryString: any
 	return data;
 };
 
-export const searchUsersWithRoles = async (auth0AccessToken: string, queryString: any) => {
+export const searchUsersWithRoles = async (auth0AccessToken: string, queryString: string) => {
 	const users = await searchUserAsync(auth0AccessToken, queryString);
 
 	const usersWithRoles = await Promise.all(
-		users.map(async (user: any) => {
+		users.map(async (user: IUser) => {
 			const roles = await fetchRoleByUserIdAsync(auth0AccessToken, user.user_id);
 			const userMetadata = user.user_metadata || {};
 
@@ -158,7 +162,7 @@ export const searchUsersWithRoles = async (auth0AccessToken: string, queryString
 				...user,
 				user_metadata: {
 					...userMetadata,
-					roles: roles.map((role: any) => role.name).join(', '),
+					roles: roles.map((role: IRole) => role.name).join(', '),
 				},
 			};
 		}),

@@ -5,9 +5,9 @@ import { Grid } from '@mui/material';
 import { NextFont } from 'next/dist/compiled/@next/font';
 import { Inter } from 'next/font/google';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, usePathname, useRouter } from 'next/navigation';
 import React, { ReactNode, useState } from 'react';
-import { HomePageConstants, SideBarItems } from '.././constants';
+import { HomePageConstants, pageMap, SideBarItems } from '.././constants';
 import Loader from '../components/Loader';
 import { supabase } from '../supabase';
 import {
@@ -21,18 +21,20 @@ import {
 	StyledLinkContainer,
 	StyledNestedLink,
 	StyledPageHeader,
-	StyledSignOutSpan,
 } from './HomePage.style';
 import { Params } from 'next/dist/shared/lib/router/utils/route-matcher';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
-import { ITenant } from '../interfaces';
+import { IRole, ITenant } from '../interfaces';
+import { useSelector } from 'react-redux';
+import { IUserState } from '../redux/interfaces';
+import { IUserInfo } from '../redux/reducers';
 
 const inter: NextFont = Inter({ subsets: ['latin'] });
 
 const Layout = ({ children }: { children: ReactNode }) => {
 	const loggedInUserData: UserContext = useUser();
-	const [loggedInUserRole, setLoggedInUserRole] = useState<string>('');
 	const [openIndexes, setOpenIndexes] = useState<any>({});
+	const roles: IRole[] = useSelector((state: IUserState) => (state.user as IUserInfo).userRole);
 
 	const toggleOpen = (index: number): void => {
 		setOpenIndexes((prevState: any) => ({
@@ -41,6 +43,9 @@ const Layout = ({ children }: { children: ReactNode }) => {
 		}));
 	};
 	const param: Params = useParams();
+	const pathName: string = usePathname();
+	const page: string = pathName.split('/')[2];
+
 	const router: AppRouterInstance = useRouter();
 
 	React.useEffect(() => {
@@ -48,12 +53,10 @@ const Layout = ({ children }: { children: ReactNode }) => {
 	}, []);
 
 	React.useEffect(() => {
-		async function setRole(): Promise<void> {
-			const role: string | null = await localStorage.getItem('userRole');
-			setLoggedInUserRole(role || '');
+		if (roles.length === 0) {
+			router.replace('/');
 		}
-		setRole();
-	}, []);
+	}, [roles]);
 
 	//supabase
 	const getTenants = async (): Promise<Array<ITenant>> => {
@@ -70,7 +73,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
 			if (!isNewTenant) {
 				const tenant: ITenant = {
 					tenant_id: loggedInUserData.user?.sub,
-					role: loggedInUserRole,
+					role: roles.join(','),
 					tenant_email: loggedInUserData.user?.email,
 					tenant_name: loggedInUserData.user?.name,
 				};
@@ -78,46 +81,47 @@ const Layout = ({ children }: { children: ReactNode }) => {
 			}
 		}
 	};
+
 	return (
 		<Container className={inter.className}>
 			<Sidebar>
-				<StyledApplicationName>{HomePageConstants.ADMIN_DASHBOARD}</StyledApplicationName>
+				<StyledApplicationName>{HomePageConstants.APPLICATION_TITLE}</StyledApplicationName>
 				<StyledLinkContainer container direction={'column'} justifyContent={'space-between'}>
 					<Grid>
-						{SideBarItems.filter((item) => item.roles.includes(loggedInUserRole)).map((sideBarItem, index) => (
-							<div key={index}>
-								<StyledLink onClick={() => toggleOpen(index)}>
-									<Link href={`/${param.domain}/${sideBarItem.path}`}>
-										{sideBarItem.icon}
-										<span>{sideBarItem.itemName}</span>
-									</Link>
-								</StyledLink>
-								{openIndexes[index] &&
-									sideBarItem.items &&
-									sideBarItem.items.length > 0 &&
-									sideBarItem.items.map((child, childIndex) => (
-										<StyledNestedLink key={`${index}-${childIndex}`}>
-											<Link href={`/${param.domain}/${child.path}`}>
-												<span>{child.itemName}</span>
-											</Link>
-										</StyledNestedLink>
-									))}
-							</div>
-						))}
+						{SideBarItems.filter((item) => roles.some((role) => item.roles.includes(role.name))).map(
+							(sideBarItem, index) => (
+								<div key={index}>
+									<StyledLink onClick={() => toggleOpen(index)}>
+										<Link href={`/${param.domain}/${sideBarItem.path}`}>
+											{sideBarItem.icon}
+											<span>{sideBarItem.itemName}</span>
+										</Link>
+									</StyledLink>
+									{openIndexes[index] &&
+										sideBarItem.items &&
+										sideBarItem.items.length > 0 &&
+										sideBarItem.items.map((child, childIndex) => (
+											<StyledNestedLink key={`${index}-${childIndex}`}>
+												<Link href={`/${param.domain}/${child.path}`}>
+													<span>{child.itemName}</span>
+												</Link>
+											</StyledNestedLink>
+										))}
+								</div>
+							),
+						)}
 					</Grid>
 					<Grid>
 						<StyledLink>
 							<LogoutIcon />
-							<StyledSignOutSpan onClick={() => router.push('/api/auth/logout')}>
-								{HomePageConstants.SIGN_OUT}
-							</StyledSignOutSpan>
+							<a href={'/api/auth/logout'}>{HomePageConstants.SIGN_OUT}</a>
 						</StyledLink>
 					</Grid>
 				</StyledLinkContainer>
 			</Sidebar>
 			<ContentWrapper>
 				<Header>
-					<StyledPageHeader>{HomePageConstants.APPLICATION_NAME}</StyledPageHeader>
+					<StyledPageHeader>{pageMap.get(page)}</StyledPageHeader>
 				</Header>
 				<Content>{children}</Content>
 			</ContentWrapper>

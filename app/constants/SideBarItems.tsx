@@ -1,5 +1,4 @@
-import BadgeRoundedIcon from '@mui/icons-material/BadgeRounded';
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import { HomePageConstants } from './HomePageConstants';
 import SearchIcon from '@mui/icons-material/Search';
 interface IItems {
@@ -20,7 +19,7 @@ export const SideBarItems: Array<ISideBarItems> = [
 	{
 		itemName: ADMIN,
 		path: ADMIN_PATH,
-		icon: <AdminPanelSettingsIcon />,
+		icon: <ManageAccountsIcon />,
 		roles: ['Admin'],
 		items: [],
 	},
@@ -32,3 +31,8 @@ export const SideBarItems: Array<ISideBarItems> = [
 		items: [],
 	},
 ];
+
+export const pageMap: Map<string, string> = new Map([
+	['search', 'Semantic Search'],
+	['admin', 'User Management'],
+]);
