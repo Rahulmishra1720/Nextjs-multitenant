@@ -11,7 +11,7 @@ import { IUserState } from './redux/interfaces';
 import UserPreferenceModal from './components/UserPreferenceModal';
 import { IRole } from './interfaces';
 
-const Page = ({ children }: { children: React.ReactNode }): React.ReactElement => {
+const Page = (): React.ReactElement => {
 	const { user, isLoading } = useUser();
 	const router: AppRouterInstance = useRouter();
 
